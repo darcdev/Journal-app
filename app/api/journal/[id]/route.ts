@@ -6,7 +6,6 @@ import { revalidatePath } from 'next/cache'
 
 export const PATCH = async (request: Request, { params }) => {
   const { content } = await request.json()
-  console.log('s' + content)
   const user = await getUserByClerkID()
   const updatedEntry = await prisma.journaEntry.update({
     where: {

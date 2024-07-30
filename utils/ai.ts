@@ -1,8 +1,11 @@
-import { OpenAI } from '@langchain/openai'
+import { ChatOpenAI, OpenAI, OpenAIEmbeddings } from '@langchain/openai'
 import { StructuredOutputParser } from 'langchain/output_parsers'
 import { PromptTemplate } from '@langchain/core/prompts'
+import { Document } from '@langchain/core/documents'
 
 import z from 'zod'
+import { loadQARefineChain } from 'langchain/chains'
+import { MemoryVectorStore } from 'langchain/vectorstores/memory'
 
 const parser = StructuredOutputParser.fromZodSchema(
   z.object({
@@ -61,6 +64,36 @@ const getPrompt = async (content: string) => {
   })
 
   return input
+}
+
+export const qa = async (question: string, entries: any[]) => {
+  const docs = entries.map((entry: any) => {
+    return new Document({
+      pageContent: entry.content,
+      metadata: {
+        source: entry.id,
+        date: entry.createdAt,
+      },
+      id: entry.id,
+    })
+  })
+
+  const model = new OpenAI({
+    temperature: 0,
+    modelName: 'gpt-4',
+  })
+  const chain = loadQARefineChain(model)
+  const embeddings = new OpenAIEmbeddings({
+    model: 'text-embedding-3-large',
+  })
+  const store = await MemoryVectorStore.fromDocuments(docs, embeddings)
+  const relevantDocs = await store.similaritySearch(question, 1)
+  const res = await chain.call({
+    question,
+    input_documents: relevantDocs,
+  })
+
+  return res.output_text
 }
 
 // I'm going to give you an journal entry, I want you to analyze for a few things.

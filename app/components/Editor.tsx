@@ -36,7 +36,6 @@ const Editor = ({ entry }) => {
     data: value,
     onSave: async (_value) => {
       setIsLoading(true)
-      console.log(_value)
       const updatedEntry = await updateEntry(entry.id, _value)
       setAnalysis(updatedEntry?.analysis)
       setIsLoading(false)
