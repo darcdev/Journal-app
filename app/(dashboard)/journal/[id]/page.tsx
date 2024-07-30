@@ -12,15 +12,19 @@ const getEntry = async (id: string) => {
         id,
       },
     },
+    include: {
+      analysis: true,
+    },
   })
 
   return entry
 }
 
 const EntryPage = async ({ params }) => {
-  const entry = await getEntry(params.id)
+  const entry: any = await getEntry(params.id)
+
   return (
-    <div>
+    <div className="w-full h-full">
       <Editor entry={entry} />
     </div>
   )
